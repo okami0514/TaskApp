@@ -1,10 +1,14 @@
 package jp.techacademy.youichi.okami.taskapp
 
+import android.app.AlarmManager
+import android.app.AlarmManager.AlarmClockInfo
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
@@ -15,12 +19,13 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class InputActivity : AppCompatActivity() {
     private lateinit var binding: ActivityInputBinding
 
     private lateinit var realm: Realm
     private lateinit var task: Task
-    private var calendar = Calendar.getInstance()
+    private var calendar = Calendar.getInstance(Locale.JAPANESE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,6 +173,19 @@ class InputActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // タスクの日時にアラームを設定
+        val intent = Intent(applicationContext, TaskAlarmReceiver::class.java)
+        intent.putExtra(EXTRA_TASK, task.id)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            task.id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        alarmManager.setAlarmClock(AlarmClockInfo(calendar.timeInMillis, null), pendingIntent)
     }
 
     /**

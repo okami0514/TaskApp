@@ -1,5 +1,7 @@
 package jp.techacademy.youichi.okami.taskapp
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
@@ -62,6 +64,19 @@ class MainActivity : AppCompatActivity() {
                         delete(it)
                     }
                 }
+
+                // アラームを削除
+                val resultIntent = Intent(applicationContext, TaskAlarmReceiver::class.java)
+                resultIntent.putExtra(EXTRA_TASK, task.id)
+                val resultPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    task.id,
+                    resultIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+                alarmManager.cancel(resultPendingIntent)
             }
 
             builder.setNegativeButton("CANCEL", null)
