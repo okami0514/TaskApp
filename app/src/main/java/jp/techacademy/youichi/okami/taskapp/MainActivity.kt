@@ -80,11 +80,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.button1.setOnClickListener {
-            val title = binding.editText.text.toString()
-            Log.d("kotlintest", title)
-        }
-
         binding.fab.setOnClickListener {
             val intent = Intent(this, InputActivity::class.java)
             startActivity(intent)
@@ -149,7 +144,29 @@ class MainActivity : AppCompatActivity() {
         realm = Realm.open(config)
 
         // Realmからタスクの一覧を取得
-        val tasks = realm.query<Task>().sort("date", Sort.DESCENDING).find()
+        var tasks = realm.query<Task>().sort("date", Sort.DESCENDING).find()
+
+        binding.button1.setOnClickListener {
+            val category = binding.editText.text.toString()
+            if (category.isNotEmpty()) {
+                tasks = realm.query<Task>("category == $0", category).sort("date", Sort.DESCENDING).find()
+            } else {
+                tasks = realm.query<Task>().sort("date", Sort.DESCENDING).find()
+            }
+
+            // Realmが起動、または更新（追加、変更、削除）時にreloadListViewを実行する
+            CoroutineScope(Dispatchers.Default).launch {
+                tasks.asFlow().collect {
+                    when (it) {
+                        // 更新時
+                        is UpdatedResults -> reloadListView(it.list)
+                        // 起動時
+                        is InitialResults -> reloadListView(it.list)
+                        else -> {}
+                    }
+                }
+            }
+        }
 
         // Realmが起動、または更新（追加、変更、削除）時にreloadListViewを実行する
         CoroutineScope(Dispatchers.Default).launch {
@@ -163,6 +180,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     override fun onDestroy() {
