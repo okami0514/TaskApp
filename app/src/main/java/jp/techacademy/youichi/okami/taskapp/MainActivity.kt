@@ -80,6 +80,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.button1.setOnClickListener {
+            val title = binding.editText.text.toString()
+            Log.d("kotlintest", title)
+        }
+
         binding.fab.setOnClickListener {
             val intent = Intent(this, InputActivity::class.java)
             startActivity(intent)
